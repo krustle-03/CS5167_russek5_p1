@@ -1,8 +1,8 @@
 import { mount } from 'svelte'
 import './app.css'
 
-import Welcome from './Welcome.svelte'
-import Receipt from './Receipt.svelte'
+import Welcome from './lib/Welcome.svelte'
+import Receipt from './lib/Receipt.svelte'
 
 // Mount the welcome component
 const welcomeApp = mount(Welcome, {
