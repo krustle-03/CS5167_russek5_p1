@@ -34,8 +34,14 @@
   }
 
   function submitReceipt() {
-    submitted = true;
-    setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
+    let subtotal = getSubtotal();
+    if (subtotal === 0) {
+      alert("Receipt has zero valid items.")
+    }  
+    else {
+      submitted = true;
+      setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
+    }
   }
 </script>
 
@@ -91,7 +97,7 @@
 
   <button style="margin-top:1em;" on:click={submitReceipt}>Submit Receipt</button>
   {#if submitted}
-    <div style="color:green; margin-top:1em;">Receipt recorded!</div>
+    <div style="color:green; margin-top:1em;">Receipt for ${getTotal().toFixed(2)} recorded!</div>
   {/if}
 </section>
 
