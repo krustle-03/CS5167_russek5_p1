@@ -1,9 +1,16 @@
 import { mount } from 'svelte'
 import './app.css'
-import App from './App.svelte'
 
-const app = mount(App, {
-  target: document.getElementById('app'),
+import Welcome from './Welcome.svelte'
+import buttons from './Buttons.svelte'
+
+// Mount the welcome component
+const welcomeApp = mount(Welcome, {
+  target: document.getElementById('welcome'),
 })
 
-export default app
+const buttonsApp = mount(buttons, {
+  target: document.getElementById('buttons'),
+})
+
+
