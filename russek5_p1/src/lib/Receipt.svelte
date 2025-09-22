@@ -12,7 +12,8 @@
 
   // Make array with first item empty
   let items = [
-    { name: "", 
+    { expenseType: "receipt",
+    name: "", 
     cost: "", 
     quantity:"1", 
     category: "" }
@@ -49,7 +50,7 @@
   $: total = subtotal * (1 + (parseFloat(taxRate) || 0) / 100);
 
   function addItem() {
-    items = [...items, { name: "", cost: "", quantity:"1", category: "" }];
+    items = [...items, { expenseType: "receipt", name: "", cost: "", quantity:"1", category: "" }];
   }
 
   function removeItem(index) {
@@ -62,6 +63,7 @@
     }  
     else {
       const receiptData = {
+        expenseType: "receipt",
         storeName,
         taxRate: parseFloat(taxRate) || 0,
         items: items.filter(item => item.name && item.cost && item.quantity).map(item => ({
@@ -97,7 +99,7 @@
       if (!editMode) {
         storeName = "";
         taxRate = "";
-        items = [{ name: "", cost: "", quantity:"1", category: "" }];
+        items = [{ expenseType: "receipt", name: "", cost: "", quantity:"1", category: "" }];
       }
     }
   }
