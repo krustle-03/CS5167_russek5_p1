@@ -29,7 +29,7 @@
 
 <header class="header" bind:this={headerElement}>
   <div class="header-content">
-    <button class="primary-button home-button" on:click={goHome}>
+    <button class="accent-button home-button" on:click={goHome}>
       <img src="/home.svg" alt="Home" class="home-icon" />
     </button>
     <div >
@@ -69,11 +69,6 @@
     width: 1.5em;
     height: 1.5em;
     filter: brightness(0) invert(1); /* Makes SVG white if it's black */
-  }
-
-  .home-button:hover {
-    background-color: rgb(145, 139, 143);
-    transition: 0.2s ease;
   }
 
 </style>

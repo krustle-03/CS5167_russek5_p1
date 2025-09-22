@@ -53,6 +53,16 @@ button:disabled {
   transition: 0.3s ease;
 }
 
+.accent-button { /*Accent Color Button*/
+  background-color: hsl(149, 52%, 60%);
+  color: white;
+}
+.accent-button:hover:not(:disabled) {
+  box-shadow: 0 0 8px hsla(149, 52%, 60%, 0.7);
+  background-color: hsla(149, 70%, 60%, 0.7);
+  transition: 0.3s ease;
+}
+
 .info-button { /*Info Color Button*/
   background-color: rgba(33, 53, 59);
   color: white;
