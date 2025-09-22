@@ -1,6 +1,5 @@
 <script>
-
-  export let expenses = [];
+  import { expenses } from './stores.js';
 
   let storeName = "";
   let taxRate = "";
@@ -44,10 +43,8 @@
         total
       };
       
-      expenses = [...expenses, receiptData];
+      expenses.update(currentExpenses => [...currentExpenses, receiptData]);
       console.log('Receipt added:', receiptData);
-      console.log('All expenses:', expenses);
-
 
       submitted = true;
       setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds

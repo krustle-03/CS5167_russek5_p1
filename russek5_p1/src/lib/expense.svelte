@@ -2,8 +2,6 @@
     import Receipt from './Receipt.svelte';
     import { currentPage } from './stores.js';
 
-    export let expenses = [];
-
     let mode = -1 // Default to no mode selected
 </script>
 
@@ -22,7 +20,7 @@
 </div>
 
 {#if mode == 1}
-  <Receipt {expenses} />
+  <Receipt />
 {:else if mode == 2}
   <!-- <SingleCostEntry /> -->
   <p>Single Cost Entry mode is under construction.</p>
