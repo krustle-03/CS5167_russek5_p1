@@ -1,6 +1,10 @@
 <script>
   import { expenses } from './stores.js';
 
+  export let editMode = false;
+  export let editIndex = -1;
+  export let onEditComplete = null;
+
   let storeName = "";
   let taxRate = "";
   let submitted = false;
@@ -12,6 +16,19 @@
     quantity:"1", 
     category: "" }
   ];
+
+  // Initialize with existing data when in edit mode
+  $: if (editMode && editIndex >= 0 && $expenses[editIndex]) {
+    const expense = $expenses[editIndex];
+    storeName = expense.storeName || "";
+    taxRate = expense.taxRate?.toString() || "";
+    items = expense.items.map(item => ({
+      name: item.name || "",
+      cost: item.cost?.toString() || "",
+      quantity: item.quantity?.toString() || "1",
+      category: item.category || ""
+    }));
+  }
   
   // Add reactive statements to force recalculation
   $: subtotal = items.reduce((sum, item) => {
@@ -41,20 +58,36 @@
         items: items.filter(item => item.name && item.cost && item.quantity), // Only include valid items
         subtotal,
         total,
-        timestamp: Date.now() // Add timestamp for sorting and display
+        timestamp: editMode ? $expenses[editIndex].timestamp : Date.now() // Preserve original timestamp when editing
       };
       
-      expenses.update(currentExpenses => [...currentExpenses, receiptData]);
-      console.log('Receipt added:', receiptData);
+      if (editMode && editIndex >= 0) {
+        // Update existing expense
+        expenses.update(currentExpenses => {
+          const updated = [...currentExpenses];
+          updated[editIndex] = receiptData;
+          return updated;
+        });
+        console.log('Receipt updated:', receiptData);
+        if (onEditComplete) onEditComplete();
+      } else {
+        // Add new expense
+        expenses.update(currentExpenses => [...currentExpenses, receiptData]);
+        console.log('Receipt added:', receiptData);
+      }
 
       submitted = true;
       setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
     }
   }
+
+  function cancelEdit() {
+    if (onEditComplete) onEditComplete();
+  }
 </script>
 
 <section>
-  <h2>Receipt Entry</h2>
+  <h2>{editMode ? 'Edit Receipt' : 'Receipt Entry'}</h2>
   <div class="top-inputs">
     <div class="input-group">
       <label for="store_name">Store Name:</label>
@@ -106,9 +139,19 @@
     <strong>Total (with tax):</strong> ${total.toFixed(2)}
   </div>
 
-  <button class="confirm-button" disabled={total.toFixed(2) === "0.00"} on:click={submitReceipt}>Submit Receipt</button>
+  <div class="button-row">
+    <button class="confirm-button" disabled={total.toFixed(2) === "0.00"} on:click={submitReceipt}>
+      {editMode ? 'Update Receipt' : 'Submit Receipt'}
+    </button>
+    {#if editMode}
+      <button class="caution-button" on:click={cancelEdit}>Cancel</button>
+    {/if}
+  </div>
+  
   {#if submitted}
-    <div style="color:green; margin-top:1em;">Receipt for ${total.toFixed(2)} recorded!</div>
+    <div style="color:green; margin-top:1em;">
+      Receipt for ${total.toFixed(2)} {editMode ? 'updated' : 'recorded'}!
+    </div>
   {/if}
 </section>
 
@@ -143,6 +186,12 @@
     width: 100%;
     align-items: center;
   }
+  .button-row {
+    display: flex;
+    gap: 1em;
+    justify-content: center;
+    margin-top: 1em;
+  }
   label {
     margin-bottom: 0.3em;
     font-weight: bold;
@@ -160,6 +209,4 @@
   #btn-remove:hover:not(:disabled) {
     box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
   }
-
-
 </style>

@@ -1,10 +1,20 @@
 <script>
   import { currentPage, expenses } from './stores.js';
+  import Receipt from './Receipt.svelte';
   
   let expandedEntry = null; // Track which entry is expanded
+  let editingEntry = null; // Track which entry is being edited
 
   function toggleEntry(index) {
     expandedEntry = expandedEntry === index ? null : index;
+  }
+
+  function startEdit(index) {
+    editingEntry = index;
+  }
+
+  function stopEdit() {
+    editingEntry = null;
   }
 
   function formatDate(timestamp) {
@@ -27,78 +37,92 @@
 <section>
   <h3>Expenses ({$expenses.length})</h3>
   
-  {#each $expenses as expense, index}
-    <div class="expense-item">
-      <!-- Clickable summary -->
-      <!-- VS Code yelled at me because it wasn't accessible enough so copilot was my friend here. -->
-      <div 
-        class="expense-summary" 
-        role="button"
-        tabindex="0"
-        aria-expanded={expandedEntry === index}
-        aria-label="Toggle receipt details for {expense.storeName || 'Unknown Store'}, ${expense.total.toFixed(2)}"
-        on:click={() => toggleEntry(index)}
-        on:keydown={(event) => handleKeydown(event, index)}
-      >
-        <div class="expense-info">
-          <span class="store-name">{expense.storeName || 'Unknown Store'}</span>
-          <span class="expense-date">{formatDate(expense.timestamp || Date.now())}</span>
+  {#if editingEntry !== null}
+    <!-- Show edit form when editing -->
+    <div class="edit-container">
+      <Receipt editMode={true} editIndex={editingEntry} onEditComplete={stopEdit} />
+    </div>
+  {:else}
+    <!-- Show expense list when not editing -->
+    {#each $expenses as expense, index}
+      <div class="expense-item">
+        <!-- Clickable summary -->
+        <div 
+          class="expense-summary" 
+          role="button"
+          tabindex="0"
+          aria-expanded={expandedEntry === index}
+          aria-label="Toggle receipt details for {expense.storeName || 'Unknown Store'}, ${expense.total.toFixed(2)}"
+          on:click={() => toggleEntry(index)}
+          on:keydown={(event) => handleKeydown(event, index)}
+        >
+          <div class="expense-info">
+            <span class="store-name">{expense.storeName || 'Unknown Store'}</span>
+            <span class="expense-date">{formatDate(expense.timestamp || Date.now())}</span>
+          </div>
+          <div class="expense-total">${expense.total.toFixed(2)}</div>
+          <div class="expand-arrow" class:expanded={expandedEntry === index}>▼</div>
         </div>
-        <div class="expense-total">${expense.total.toFixed(2)}</div>
-        <div class="expand-arrow" class:expanded={expandedEntry === index}>▼</div>
-      </div>
 
-      <!-- Expands into a receipt! -->
-      {#if expandedEntry === index}
-        <div class="receipt-container" role="region" aria-label="Receipt details">
-          <div class="receipt">
-            <div class="receipt-header">
-              <h4>{expense.storeName || 'RECEIPT'}</h4>
-              <div class="receipt-date">{formatDate(expense.timestamp || Date.now())}</div>
-            </div>
-            
-            <div class="receipt-divider">═══════════════════════════</div>
-            
-            <div class="receipt-items">
-              {#each expense.items as item}
-                <div class="receipt-item">
-                  <div class="item-line">
-                    <span class="item-name">{item.name}</span>
-                    <span class="item-price">${(item.cost * item.quantity).toFixed(2)}</span>
+        <!-- Expands into a receipt! -->
+        {#if expandedEntry === index}
+          <div class="receipt-container" role="region" aria-label="Receipt details">
+            <div class="receipt">
+              <div class="receipt-header">
+                <h4>{expense.storeName || 'RECEIPT'}</h4>
+                <div class="receipt-date">{formatDate(expense.timestamp || Date.now())}</div>
+              </div>
+              
+              <div class="receipt-divider">═══════════════════════════</div>
+              
+              <div class="receipt-items">
+                {#each expense.items as item}
+                  <div class="receipt-item">
+                    <div class="item-line">
+                      <span class="item-name">{item.name}</span>
+                      <span class="item-price">${(item.cost * item.quantity).toFixed(2)}</span>
+                    </div>
+                    <div class="item-details">
+                      {item.quantity} × ${item.cost.toFixed(2)}
+                    </div>
                   </div>
-                  <div class="item-details">
-                    {item.quantity} × ${item.cost.toFixed(2)}
-                  </div>
+                {/each}
+              </div>
+              
+              <div class="receipt-divider">═══════════════════════════</div>
+              
+              <div class="receipt-totals">
+                <div class="total-line">
+                  <span>SUBTOTAL:</span>
+                  <span>${expense.subtotal.toFixed(2)}</span>
                 </div>
-              {/each}
+                <div class="total-line">
+                  <span>TAX ({expense.taxRate}%):</span>
+                  <span>${(expense.total - expense.subtotal).toFixed(2)}</span>
+                </div>
+                <div class="total-line final-total">
+                  <span>TOTAL:</span>
+                  <span>${expense.total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
             
-            <div class="receipt-divider">═══════════════════════════</div>
-            
-            <div class="receipt-totals">
-              <div class="total-line">
-                <span>SUBTOTAL:</span>
-                <span>${expense.subtotal.toFixed(2)}</span>
-              </div>
-              <div class="total-line">
-                <span>TAX ({expense.taxRate}%):</span>
-                <span>${(expense.total - expense.subtotal).toFixed(2)}</span>
-              </div>
-              <div class="total-line final-total">
-                <span>TOTAL:</span>
-                <span>${expense.total.toFixed(2)}</span>
-              </div>
+            <!-- Edit button -->
+            <div class="edit-actions">
+              <button class="primary-button" on:click={() => startEdit(index)}>
+                Edit Receipt
+              </button>
             </div>
           </div>
-        </div>
-      {/if}
-    </div>
-  {/each}
-  
-  {#if $expenses.length === 0}
-    <div class="no-expenses">
-      <p>No expenses recorded yet.</p>
-    </div>
+        {/if}
+      </div>
+    {/each}
+    
+    {#if $expenses.length === 0}
+      <div class="no-expenses">
+        <p>No expenses recorded yet.</p>
+      </div>
+    {/if}
   {/if}
 </section>
 
@@ -109,6 +133,10 @@
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .edit-container {
+    margin-bottom: 2rem;
   }
 
   .expense-item {
@@ -185,7 +213,9 @@
     padding: 1rem;
     background: #1a1a1a;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
 
   .receipt {
@@ -265,6 +295,11 @@
     border-top: 1px solid #000;
     padding-top: 0.3rem;
     margin-top: 0.5rem;
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 1rem;
   }
 
   .no-expenses {
