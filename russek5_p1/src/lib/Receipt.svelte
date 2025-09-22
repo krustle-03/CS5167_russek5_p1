@@ -40,7 +40,8 @@
         taxRate: parseFloat(taxRate) || 0,
         items: items.filter(item => item.name && item.cost && item.quantity), // Only include valid items
         subtotal,
-        total
+        total,
+        timestamp: Date.now() // Add timestamp for sorting and display
       };
       
       expenses.update(currentExpenses => [...currentExpenses, receiptData]);
