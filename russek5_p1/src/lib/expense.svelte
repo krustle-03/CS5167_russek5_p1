@@ -1,5 +1,7 @@
 <script>
     import Receipt from './Receipt.svelte';
+    import SingleCost from './SingleCost.svelte';
+    import SingleCostEntry from './SingleCost.svelte';
     import { currentPage } from './stores.js';
 
     let mode = -1 // Default to no mode selected
@@ -24,6 +26,8 @@
 {:else if mode == 2}
   <!-- <SingleCostEntry /> -->
   <p>Single Cost Entry mode is under construction.</p>
+  <SingleCost />
+
 {:else}
   <h1>Please select a mode using the dropdown above to begin.</h1>
 {/if}

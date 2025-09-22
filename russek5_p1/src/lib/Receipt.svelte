@@ -57,6 +57,18 @@
     items = items.filter((_, i) => i !== index);
   }
 
+  function deleteReceipt() {
+    if (editMode && editIndex >= 0 && $expenses && $expenses[editIndex]) {
+      expenses.update(currentExpenses => {
+        const updated = [...currentExpenses];
+        updated.splice(editIndex, 1);
+        return updated;
+      });
+      console.log('Receipt deleted at index:', editIndex);
+      if (onEditComplete) onEditComplete();
+    }
+  }
+
   function submitReceipt() {
     if (subtotal === 0) {
       alert("Receipt has zero valid items.")
@@ -88,7 +100,7 @@
         if (onEditComplete) onEditComplete();
       } else {
         // Add new expense
-        expenses.update(currentExpenses => [...currentExpenses, receiptData]);
+        expenses.update(currentExpenses => [receiptData, ...currentExpenses]);
         console.log('Receipt added:', receiptData);
       }
 
@@ -144,6 +156,7 @@
           <input id="item-category" type="text" bind:value={item.category} placeholder="Category" />
         </div>
         <div class="input-group">
+          <label for="item-remove" style="min-height: 1.5em;"></label>
           <button class="danger-button" 
                   id="btn-remove" 
                   type="button" 
@@ -169,6 +182,7 @@
     </button>
     {#if editMode}
       <button class="caution-button" on:click={cancelEdit}>Cancel</button>
+      <button class="danger-button" on:click={deleteReceipt}>Delete</button>
     {/if}
   </div>
   
@@ -225,6 +239,9 @@
     font-size: 1em;
   }
 
+  #btn-remove{
+    margin: 0;
+  }
   #btn-remove:disabled {
     background-color: silver;
     color: darkgrey;
