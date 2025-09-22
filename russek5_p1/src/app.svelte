@@ -1,47 +1,31 @@
 <script>
+  import Header from './lib/Header.svelte';
   import Welcome from './lib/Welcome.svelte';
-  import Receipt from './lib/Receipt.svelte';
-  //import SingleCostEntry from './lib/SingleCostEntry.svelte';
-  let mode = 'receipt'; // or 'single'
+  import Expense from './lib/expense.svelte';
+  import { currentPage } from './lib/stores.js';
+  
+  // Use the store instead of a local variable
+  let expenses = []
 </script>
 
-<Welcome />
-<div class="mode-select-container">
-  <div class="mode-select">
-    <label for="mode-select-dropdown">Select Mode:</label>
-    <select id="mode-select-dropdown" bind:value={mode}>
-      <option value="receipt">Receipt Mode</option>
-      <option value="single">Single Cost Entry</option>
-      <!-- Add more modes here as needed -->
-    </select>
+<Header />
+  
+<!-- This is gonna be the fake routing section -->
+{#if $currentPage == 0}
+  <Welcome />
+  <!--Buttons for fake routing: Input cost and Track Expenses-->
+  <div class="centered-items">
+    <button class="primary-button" on:click={() => currentPage.set(1)}>Enter Expense</button>
+    <button class="primary-button" on:click={() => currentPage.set(0)}>Track Expenses</button>
   </div>
-</div>
 
-
-{#if mode === 'receipt'}
-  <Receipt />
+{:else if $currentPage == 1}
+  <Expense {expenses}/>
 {/if}
 
 
+
+
 <style>
-
-  .mode-select-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .mode-select{
-    max-width: 200px;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-  }
-
-  #mode-select-dropdown {
-    font-size: 1em;
-    padding: 0.3em;
-  }
 
 </style>

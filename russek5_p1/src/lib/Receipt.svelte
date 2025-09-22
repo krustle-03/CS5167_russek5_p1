@@ -1,6 +1,11 @@
 <script>
+
+  export let expenses = [];
+
   let storeName = "";
   let taxRate = "";
+  let submitted = false;
+
   // Make array with first item empty
   let items = [
     { name: "", 
@@ -8,8 +13,15 @@
     quantity:"1", 
     category: "" }
   ];
+  
+  // Add reactive statements to force recalculation
+  $: subtotal = items.reduce((sum, item) => {
+    const cost = parseFloat(item.cost) || 0;
+    const quantity = parseInt(item.quantity) || 0;
+    return sum + cost * quantity;
+  }, 0);
 
-  let submitted = false;
+  $: total = subtotal * (1 + (parseFloat(taxRate) || 0) / 100);
 
   function addItem() {
     items = [...items, { name: "", cost: "", quantity:"1", category: "" }];
@@ -19,26 +31,24 @@
     items = items.filter((_, i) => i !== index);
   }
 
-  function getSubtotal() {
-    return items.reduce((sum, item) => {
-      const cost = parseFloat(item.cost) || 0;
-      const quantity = parseInt(item.quantity) || 0;
-      return sum + cost * quantity;
-    }, 0);
-  }
-
-  function getTotal() {
-    const subtotal = getSubtotal();
-    const tax = (parseFloat(taxRate) || 0) / 100;
-    return subtotal * (1 + tax);
-  }
-
   function submitReceipt() {
-    let subtotal = getSubtotal();
     if (subtotal === 0) {
       alert("Receipt has zero valid items.")
     }  
     else {
+      const receiptData = {
+        storeName,
+        taxRate: parseFloat(taxRate) || 0,
+        items: items.filter(item => item.name && item.cost && item.quantity), // Only include valid items
+        subtotal,
+        total
+      };
+      
+      expenses = [...expenses, receiptData];
+      console.log('Receipt added:', receiptData);
+      console.log('All expenses:', expenses);
+
+
       submitted = true;
       setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
     }
@@ -62,12 +72,6 @@
   {#each items as item, i}
     <div class="item-entry">
       <div class="item-row">
-        
-        
-        <div class="input-group">
-          <button id="btn-remove" type="button" on:click={() => removeItem(i)} title="Remove item">✖</button>
-          
-        </div>
         <div class="input-group">
           <label for="item-name">Name:</label>
           <input id="item-name" type="text" bind:value={item.name} placeholder="Item Name" />
@@ -84,20 +88,29 @@
           <label for="item-category">Category:</label>
           <input id="item-category" type="text" bind:value={item.category} placeholder="Category" />
         </div>
+        <div class="input-group">
+          <button class="danger-button" 
+                  id="btn-remove" 
+                  type="button" 
+                  on:click={() => removeItem(i)} 
+                  disabled={items.length === 1} 
+                  title="Remove item"
+                  >✖</button>
+        </div>
       </div>
     </div>
   {/each}
 
-  <button on:click={addItem}>Add Item</button>
+  <button class="primary-button" on:click={addItem}>Add Item</button>
 
   <div style="margin-top:2em;">
-    <strong>Subtotal:</strong> ${getSubtotal().toFixed(2)}<br>
-    <strong>Total (with tax):</strong> ${getTotal().toFixed(2)}
+    <strong>Subtotal:</strong> ${subtotal.toFixed(2)}<br>
+    <strong>Total (with tax):</strong> ${total.toFixed(2)}
   </div>
 
-  <button style="margin-top:1em;" on:click={submitReceipt}>Submit Receipt</button>
+  <button class="confirm-button" disabled={total.toFixed(2) === "0.00"} on:click={submitReceipt}>Submit Receipt</button>
   {#if submitted}
-    <div style="color:green; margin-top:1em;">Receipt for ${getTotal().toFixed(2)} recorded!</div>
+    <div style="color:green; margin-top:1em;">Receipt for ${total.toFixed(2)} recorded!</div>
   {/if}
 </section>
 
@@ -141,19 +154,14 @@
     font-size: 1em;
   }
 
-  #btn-remove {
-    cursor: pointer;
-    max-width: 2em;
-    padding: .5em;
-    border: none;
-    color: #c00;
-    font-size: 2em;
-    line-height: 1;
+  #btn-remove:disabled {
+    background-color: silver;
+    color: darkgrey;
+    cursor: not-allowed;
+  }
+  #btn-remove:hover:not(:disabled) {
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+  }
 
-  }
-  #btn-remove:hover {
-    color: #f00;
-    background: #eee;
-    transition: 0.2s;
-  }
+
 </style>

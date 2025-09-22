@@ -1,3 +1,5 @@
+/* This CSS file is for sitewide theming. */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -5,7 +7,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #21353b;
   
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,58 +18,80 @@
 
 body {
   margin: 0;
+  margin-top: var(--header-height); /* Adjust based on your header height */
   display: flex;
   flex-direction: column;
   place-items: center;
   min-width: 320px;
-  min-height: 100vh;
-}
-
-#center-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-grow: 1;
-  width: 100%;
+  min-height: calc(100vh - var(--header-height)); /* Subtract header height from viewport height */
 }
 
 
-
-.buttons-set {
-  display: flex;
-  gap: 2.5em;
-  justify-content: center;
-  margin-top: 1em;
-}
-
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+/* Button styles */
+button {  /*Default button*/
+  background-color: gray ;
+  color: white;
+  border-radius: 4px;
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border: none;
   cursor: pointer;
-  transition: border-color 0.25s;
-  width: 10em;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+button:disabled {
+  background-color: silver;
+  color: darkgrey;
+  cursor: not-allowed;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.primary-button { /*Primary Color Button*/
+  background-color: rgba(105, 97, 102, 1);
+  color: white;
+}
+.primary-button:hover:not(:disabled) {
+  box-shadow: 0 0 8px rgba(105,97,102, 0.7);
+  transition: 0.3s ease;
+}
+
+.info-button { /*Info Color Button*/
+  background-color: rgba(33, 53, 59);
+  color: white;
+}
+.info-button:hover:not(:disabled) {
+  box-shadow: 0 0 8px rgba(33, 53, 59, 0.7); 
+  transition: 0.3s ease;
+}
+
+.confirm-button { /*Confirm Color Button*/
+  background-color: rgba(85, 152, 87);
+  color: white;
+}
+.confirm-button:hover:not(:disabled){
+  box-shadow: 0 0 8px rgba(85, 152, 87, 0.7);
+  transition: 0.3s ease;
+}
+
+.caution-button { /*Caution Color Button*/
+  background-color: rgba(210, 136, 31);
+  color: white;
+}
+.caution-button:hover:not(:disabled) {
+  box-shadow: 0 0 8px rgba(210, 136, 31, 0.7);
+  transition: 0.3s ease;
+}
+
+.danger-button { /*Danger Color Button*/
+  background-color: rgba(244, 67, 54);
+  color: white;
+}
+.danger-button:hover:not(:disabled){
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.7);
+  transition: 0.3s ease;
+}
+
+
+.centered-items {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
