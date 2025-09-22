@@ -8,6 +8,7 @@
   let storeName = "";
   let taxRate = "";
   let submitted = false;
+  let initialized = false;
 
   // Make array with first item empty
   let items = [
@@ -17,17 +18,25 @@
     category: "" }
   ];
 
-  // Initialize with existing data when in edit mode
-  $: if (editMode && editIndex >= 0 && $expenses[editIndex]) {
+  // Initialize with existing data when in edit mode - with better guards
+  $: if (editMode && editIndex >= 0 && $expenses && $expenses[editIndex] && !initialized) {
     const expense = $expenses[editIndex];
-    storeName = expense.storeName || "";
-    taxRate = expense.taxRate?.toString() || "";
-    items = expense.items.map(item => ({
-      name: item.name || "",
-      cost: item.cost?.toString() || "",
-      quantity: item.quantity?.toString() || "1",
-      category: item.category || ""
-    }));
+    if (expense) {
+      storeName = expense.storeName || "";
+      taxRate = expense.taxRate?.toString() || "";
+      items = expense.items && expense.items.length > 0 ? expense.items.map(item => ({
+        name: item.name || "",
+        cost: item.cost?.toString() || "",
+        quantity: item.quantity?.toString() || "1",
+        category: item.category || ""
+      })) : [{ name: "", cost: "", quantity:"1", category: "" }];
+      initialized = true;
+    }
+  }
+
+  // Reset initialization flag when switching modes
+  $: if (!editMode) {
+    initialized = false;
   }
   
   // Add reactive statements to force recalculation
@@ -55,10 +64,15 @@
       const receiptData = {
         storeName,
         taxRate: parseFloat(taxRate) || 0,
-        items: items.filter(item => item.name && item.cost && item.quantity), // Only include valid items
+        items: items.filter(item => item.name && item.cost && item.quantity).map(item => ({
+          name: item.name,
+          cost: parseFloat(item.cost) || 0,
+          quantity: parseInt(item.quantity) || 1,
+          category: item.category || ""
+        })), // Ensure proper data types
         subtotal,
         total,
-        timestamp: editMode ? $expenses[editIndex].timestamp : Date.now() // Preserve original timestamp when editing
+        timestamp: editMode && $expenses[editIndex] ? $expenses[editIndex].timestamp : Date.now()
       };
       
       if (editMode && editIndex >= 0) {
@@ -78,10 +92,18 @@
 
       submitted = true;
       setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
+      
+      // Reset form if not in edit mode
+      if (!editMode) {
+        storeName = "";
+        taxRate = "";
+        items = [{ name: "", cost: "", quantity:"1", category: "" }];
+      }
     }
   }
 
   function cancelEdit() {
+    initialized = false;
     if (onEditComplete) onEditComplete();
   }
 </script>

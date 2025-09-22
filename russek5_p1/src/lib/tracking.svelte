@@ -25,6 +25,18 @@
     });
   }
 
+  // Safe calculation functions
+  function calculateItemTotal(item) {
+    const cost = typeof item.cost === 'number' ? item.cost : parseFloat(item.cost) || 0;
+    const quantity = typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity) || 1;
+    return cost * quantity;
+  }
+
+  function formatCurrency(value) {
+    const num = typeof value === 'number' ? value : parseFloat(value) || 0;
+    return num.toFixed(2);
+  }
+
   // Add keyboard event handler for accessibility
   function handleKeydown(event, index) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -52,7 +64,7 @@
           role="button"
           tabindex="0"
           aria-expanded={expandedEntry === index}
-          aria-label="Toggle receipt details for {expense.storeName || 'Unknown Store'}, ${expense.total.toFixed(2)}"
+          aria-label="Toggle receipt details for {expense.storeName || 'Unknown Store'}, ${formatCurrency(expense.total)}"
           on:click={() => toggleEntry(index)}
           on:keydown={(event) => handleKeydown(event, index)}
         >
@@ -60,7 +72,7 @@
             <span class="store-name">{expense.storeName || 'Unknown Store'}</span>
             <span class="expense-date">{formatDate(expense.timestamp || Date.now())}</span>
           </div>
-          <div class="expense-total">${expense.total.toFixed(2)}</div>
+          <div class="expense-total">${formatCurrency(expense.total)}</div>
           <div class="expand-arrow" class:expanded={expandedEntry === index}>▼</div>
         </div>
 
@@ -76,14 +88,14 @@
               <div class="receipt-divider">═══════════════════════════</div>
               
               <div class="receipt-items">
-                {#each expense.items as item}
+                {#each expense.items || [] as item}
                   <div class="receipt-item">
                     <div class="item-line">
-                      <span class="item-name">{item.name}</span>
-                      <span class="item-price">${(item.cost * item.quantity).toFixed(2)}</span>
+                      <span class="item-name">{item.name || 'Unknown Item'}</span>
+                      <span class="item-price">${formatCurrency(calculateItemTotal(item))}</span>
                     </div>
                     <div class="item-details">
-                      {item.quantity} × ${item.cost.toFixed(2)}
+                      {item.quantity || 1} × ${formatCurrency(item.cost)}
                     </div>
                   </div>
                 {/each}
@@ -94,15 +106,15 @@
               <div class="receipt-totals">
                 <div class="total-line">
                   <span>SUBTOTAL:</span>
-                  <span>${expense.subtotal.toFixed(2)}</span>
+                  <span>${formatCurrency(expense.subtotal)}</span>
                 </div>
                 <div class="total-line">
-                  <span>TAX ({expense.taxRate}%):</span>
-                  <span>${(expense.total - expense.subtotal).toFixed(2)}</span>
+                  <span>TAX ({expense.taxRate || 0}%):</span>
+                  <span>${formatCurrency((expense.total || 0) - (expense.subtotal || 0))}</span>
                 </div>
                 <div class="total-line final-total">
                   <span>TOTAL:</span>
-                  <span>${expense.total.toFixed(2)}</span>
+                  <span>${formatCurrency(expense.total)}</span>
                 </div>
               </div>
             </div>
