@@ -1,17 +1,44 @@
 <script>
   import { expenses } from './stores.js';
 
+  export let editMode = false;
+  export let editIndex = -1;
+  export let onEditComplete = null;
+
   let storeName = "";
   let taxRate = "";
   let submitted = false;
+  let initialized = false;
 
   // Make array with first item empty
   let items = [
-    { name: "", 
+    { expenseType: "receipt",
+    name: "", 
     cost: "", 
     quantity:"1", 
     category: "" }
   ];
+
+  // Initialize with existing data when in edit mode - with better guards
+  $: if (editMode && editIndex >= 0 && $expenses && $expenses[editIndex] && !initialized) {
+    const expense = $expenses[editIndex];
+    if (expense) {
+      storeName = expense.storeName || "";
+      taxRate = expense.taxRate?.toString() || "";
+      items = expense.items && expense.items.length > 0 ? expense.items.map(item => ({
+        name: item.name || "",
+        cost: item.cost?.toString() || "",
+        quantity: item.quantity?.toString() || "1",
+        category: item.category || ""
+      })) : [{ name: "", cost: "", quantity:"1", category: "" }];
+      initialized = true;
+    }
+  }
+
+  // Reset initialization flag when switching modes
+  $: if (!editMode) {
+    initialized = false;
+  }
   
   // Add reactive statements to force recalculation
   $: subtotal = items.reduce((sum, item) => {
@@ -23,11 +50,23 @@
   $: total = subtotal * (1 + (parseFloat(taxRate) || 0) / 100);
 
   function addItem() {
-    items = [...items, { name: "", cost: "", quantity:"1", category: "" }];
+    items = [...items, { expenseType: "receipt", name: "", cost: "", quantity:"1", category: "" }];
   }
 
   function removeItem(index) {
     items = items.filter((_, i) => i !== index);
+  }
+
+  function deleteReceipt() {
+    if (editMode && editIndex >= 0 && $expenses && $expenses[editIndex]) {
+      expenses.update(currentExpenses => {
+        const updated = [...currentExpenses];
+        updated.splice(editIndex, 1);
+        return updated;
+      });
+      console.log('Receipt deleted at index:', editIndex);
+      if (onEditComplete) onEditComplete();
+    }
   }
 
   function submitReceipt() {
@@ -36,24 +75,55 @@
     }  
     else {
       const receiptData = {
+        expenseType: "receipt",
         storeName,
         taxRate: parseFloat(taxRate) || 0,
-        items: items.filter(item => item.name && item.cost && item.quantity), // Only include valid items
+        items: items.filter(item => item.name && item.cost && item.quantity).map(item => ({
+          name: item.name,
+          cost: parseFloat(item.cost) || 0,
+          quantity: parseInt(item.quantity) || 1,
+          category: item.category || ""
+        })), // Ensure proper data types
         subtotal,
-        total
+        total,
+        timestamp: editMode && $expenses[editIndex] ? $expenses[editIndex].timestamp : Date.now()
       };
       
-      expenses.update(currentExpenses => [...currentExpenses, receiptData]);
-      console.log('Receipt added:', receiptData);
+      if (editMode && editIndex >= 0) {
+        // Update existing expense
+        expenses.update(currentExpenses => {
+          const updated = [...currentExpenses];
+          updated[editIndex] = receiptData;
+          return updated;
+        });
+        console.log('Receipt updated:', receiptData);
+        if (onEditComplete) onEditComplete();
+      } else {
+        // Add new expense
+        expenses.update(currentExpenses => [receiptData, ...currentExpenses]);
+        console.log('Receipt added:', receiptData);
+      }
 
       submitted = true;
       setTimeout(() => submitted = false, 2000); // Hide feedback after 2 seconds
+      
+      // Reset form if not in edit mode
+      if (!editMode) {
+        storeName = "";
+        taxRate = "";
+        items = [{ expenseType: "receipt", name: "", cost: "", quantity:"1", category: "" }];
+      }
     }
+  }
+
+  function cancelEdit() {
+    initialized = false;
+    if (onEditComplete) onEditComplete();
   }
 </script>
 
 <section>
-  <h2>Receipt Entry</h2>
+  <h2>{editMode ? 'Edit Receipt' : 'Receipt Entry'}</h2>
   <div class="top-inputs">
     <div class="input-group">
       <label for="store_name">Store Name:</label>
@@ -86,6 +156,7 @@
           <input id="item-category" type="text" bind:value={item.category} placeholder="Category" />
         </div>
         <div class="input-group">
+          <label for="item-remove" style="min-height: 1.5em;"></label>
           <button class="danger-button" 
                   id="btn-remove" 
                   type="button" 
@@ -105,9 +176,20 @@
     <strong>Total (with tax):</strong> ${total.toFixed(2)}
   </div>
 
-  <button class="confirm-button" disabled={total.toFixed(2) === "0.00"} on:click={submitReceipt}>Submit Receipt</button>
+  <div class="button-row">
+    <button class="confirm-button" disabled={total.toFixed(2) === "0.00"} on:click={submitReceipt}>
+      {editMode ? 'Update Receipt' : 'Submit Receipt'}
+    </button>
+    {#if editMode}
+      <button class="caution-button" on:click={cancelEdit}>Cancel</button>
+      <button class="danger-button" on:click={deleteReceipt}>Delete</button>
+    {/if}
+  </div>
+  
   {#if submitted}
-    <div style="color:green; margin-top:1em;">Receipt for ${total.toFixed(2)} recorded!</div>
+    <div style="color:green; margin-top:1em;">
+      Receipt for ${total.toFixed(2)} {editMode ? 'updated' : 'recorded'}!
+    </div>
   {/if}
 </section>
 
@@ -142,6 +224,12 @@
     width: 100%;
     align-items: center;
   }
+  .button-row {
+    display: flex;
+    gap: 1em;
+    justify-content: center;
+    margin-top: 1em;
+  }
   label {
     margin-bottom: 0.3em;
     font-weight: bold;
@@ -151,6 +239,9 @@
     font-size: 1em;
   }
 
+  #btn-remove{
+    margin: 0;
+  }
   #btn-remove:disabled {
     background-color: silver;
     color: darkgrey;
@@ -159,6 +250,4 @@
   #btn-remove:hover:not(:disabled) {
     box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
   }
-
-
 </style>
