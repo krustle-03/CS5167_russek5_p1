@@ -30,7 +30,7 @@
 <header class="header" bind:this={headerElement}>
   <div class="header-content">
     <button class="accent-button home-button" on:click={goHome}>
-      <img src="/home.svg" alt="Home" class="home-icon" />
+      <img src="./home.svg" alt="Home" class="home-icon" />
     </button>
     <div >
       DEBUG INFO:
