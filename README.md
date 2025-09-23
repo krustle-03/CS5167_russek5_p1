@@ -15,7 +15,7 @@ Built with Svelte + Vite, this lightweight receipt logger lets you record receip
 2. npm run dev
 
 Open <http://localhost:5173> (or the port shown by Vite) to view the app.
-    
+
 - Project is configured to publish under `/CS5167_russek5_p1/` (see [vite.config.js](vite.config.js)).
 - GitHub Pages workflow present in .github/workflows for automatic deployment.
 
@@ -24,6 +24,7 @@ If you want to inspect or update the deployed site, the repository's main branch
 ## Development & Code Structure
 
 Quick map of important files
+
 - App entry / routing: [src/app.svelte](src/app.svelte)
 - Header / global controls: [src/lib/Header.svelte](src/lib/Header.svelte)
 - Receipt entry form: [src/lib/Receipt.svelte](src/lib/Receipt.svelte)
@@ -76,5 +77,3 @@ It's a step toward something I want to build in the future. In the scope of the 
 **Wouldn't it just be easier to do this in excel?**
 
 Yes.
-
-
